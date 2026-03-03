@@ -28,12 +28,16 @@ exports.createClass = async (req, res) => {
 // שליפת כל הסדנאות
 exports.getAllClasses = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT * FROM classes ORDER BY date ASC"
-    );
+    const [rows] = await pool.query(`
+      SELECT 
+        c.id, c.title, c.description, c.date, c.spots, c.created_by, c.created_at,
+        u.full_name AS created_by_name
+      FROM classes c
+      LEFT JOIN users u ON u.id = c.created_by
+      ORDER BY c.date ASC
+    `);
 
     res.json({ ok: true, classes: rows });
-
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
