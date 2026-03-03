@@ -1,11 +1,13 @@
 const router = require("express").Router();
 const classController = require("../controllers/classController");
+const registrationController = require("../controllers/registrationController");
 const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
 
-// public: כל אחד יכול לראות מפגשים (אפשר גם להחליט שרק מחוברים)
 router.get("/", classController.getAllClasses);
 
-// admin only: יצירת מפגש
 router.post("/", requireAuth, requireAdmin, classController.createClass);
+
+router.post("/:id/register", requireAuth, registrationController.registerToClass);
+router.post("/:id/cancel", requireAuth, registrationController.cancelRegistration);
 
 module.exports = router;
