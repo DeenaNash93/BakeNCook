@@ -28,17 +28,47 @@ exports.createClass = async (req, res) => {
 // שליפת כל הסדנאות
 exports.getAllClasses = async (req, res) => {
   try {
+
+    const userId = req.user ? req.user.id : null;
+
     const [rows] = await pool.query(`
       SELECT 
-        c.id, c.title, c.description, c.date, c.spots, c.created_by, c.created_at,
-        u.full_name AS created_by_name
-      FROM classes c
-      LEFT JOIN users u ON u.id = c.created_by
-      ORDER BY c.date ASC
-    `);
+        c.id,
+        c.title,
+        c.description,
+        c.date,
+        c.spots,
+        c.created_at,
+        u.full_name AS created_by_name,
 
-    res.json({ ok: true, classes: rows });
+        COUNT(cr.id) AS registered_count,
+
+        (c.spots - COUNT(cr.id)) AS spots_left,
+
+        MAX(CASE WHEN cr.user_id = ? AND cr.status='registered' THEN 1 ELSE 0 END) AS is_registered
+
+      FROM classes c
+
+      LEFT JOIN users u
+      ON u.id = c.created_by
+
+      LEFT JOIN class_registrations cr
+      ON cr.class_id = c.id AND cr.status='registered'
+
+      GROUP BY c.id
+
+      ORDER BY c.date ASC
+    `,[userId]);
+
+    res.json({
+      ok: true,
+      classes: rows
+    });
+
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    res.status(500).json({
+      ok:false,
+      error: err.message
+    });
   }
 };
