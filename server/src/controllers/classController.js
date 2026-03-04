@@ -72,3 +72,31 @@ exports.getAllClasses = async (req, res) => {
     });
   }
 };
+
+exports.getMyClasses = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [rows] = await pool.query(
+      `
+      SELECT 
+        c.id,
+        c.title,
+        c.description,
+        c.date,
+        c.spots,
+        u.full_name AS created_by_name
+      FROM class_registrations cr
+      JOIN classes c ON c.id = cr.class_id
+      LEFT JOIN users u ON u.id = c.created_by
+      WHERE cr.user_id = ? AND cr.status = 'registered'
+      ORDER BY c.date ASC
+      `,
+      [userId]
+    );
+
+    res.json({ ok: true, classes: rows });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+};
