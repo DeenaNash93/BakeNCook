@@ -8,11 +8,13 @@ const healthRoutes = require("./routes/healthRoutes");
 const userRoutes = require("./routes/userRoutes");
 const classRoutes = require("./routes/classRoutes");
 const recipeRoutes = require("./routes/recipeRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 const app = express();
 
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
+app.use("/uploads", express.static("src/uploads"));
 
 app.use(
   cors({
@@ -26,6 +28,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/recipes", recipeRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

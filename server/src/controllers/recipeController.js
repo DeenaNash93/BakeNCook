@@ -119,3 +119,32 @@ exports.updateRecipeStatus = async (req, res) => {
     res.status(500).json({ ok: false, error: err.message });
   }
 };
+
+exports.uploadRecipeImage = async (req, res) => {
+  try {
+    const recipeId = Number(req.params.id);
+
+    if (!req.file) {
+      return res.status(400).json({ ok: false, message: "לא נשלחה תמונה" });
+    }
+
+    const imagePath = `/uploads/${req.file.filename}`;
+
+    const [result] = await pool.query(
+      "UPDATE recipes SET image = ? WHERE id = ?",
+      [imagePath, recipeId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: "מתכון לא נמצא" });
+    }
+
+    res.json({
+      ok: true,
+      message: "התמונה נשמרה בהצלחה",
+      image: imagePath,
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+};

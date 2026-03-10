@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middleware/uploadMiddleware");
 
 const recipeController = require("../controllers/recipeController");
 const { requireAuth, requireAdmin } = require("../middleware/authMiddleware");
@@ -18,5 +19,13 @@ router.get("/pending", requireAuth, requireAdmin, recipeController.getPendingRec
 
 // admin: עדכון סטטוס מתכון
 router.patch("/:id/status", requireAuth, requireAdmin, recipeController.updateRecipeStatus);
+
+router.patch(
+  "/:id/image",
+  requireAuth,
+  requireAdmin,
+  upload.single("image"),
+  recipeController.uploadRecipeImage
+);
 
 module.exports = router;
