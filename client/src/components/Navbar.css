@@ -1,0 +1,65 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  background-color: #fff6ef;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+
+  padding: 12px 24px;
+
+  display: flex;
+  align-items: center;
+  gap: 35px;
+}
+
+/* לוגו */
+
+.logo {
+  height: 90px;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+/* קישורים */
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 16px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #333;
+  transition: 0.2s;
+}
+
+/* hover */
+
+.nav-links a:hover {
+  color: #d98c3f;
+}
+
+/* קישור פעיל */
+
+.active-link {
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+/* כפתור logout */
+
+.logout-btn {
+  border: none;
+  background-color: #c94f4f;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #a83c3c;
+}

@@ -27,3 +27,13 @@ select,
 button {
   font-family: inherit;
 }
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: right;
+}
+
+table th {
+  background-color: #f2f2f2;
+}

@@ -5,6 +5,7 @@ import ClassesPage from "./pages/ClassesPage";
 import MyClassesPage from "./pages/MyClassesPage";
 import RecipesPage from "./pages/RecipesPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import MainLayout from "./layouts/MainLayout";
 
 function App() {
   return (
@@ -12,10 +13,13 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/classes" element={<ClassesPage />} />
-        <Route path="/my-classes" element={<MyClassesPage />} />
-        <Route path="/recipes" element={<RecipesPage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
+
+        <Route element={<MainLayout />}>
+          <Route path="/classes" element={<ClassesPage />} />
+          <Route path="/my-classes" element={<MyClassesPage />} />
+          <Route path="/recipes" element={<RecipesPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
