@@ -6,6 +6,8 @@ import MyClassesPage from "./pages/MyClassesPage";
 import RecipesPage from "./pages/RecipesPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import MainLayout from "./layouts/MainLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
@@ -14,11 +16,25 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        <Route element={<MainLayout />}>
+        <Route
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/classes" element={<ClassesPage />} />
           <Route path="/my-classes" element={<MyClassesPage />} />
           <Route path="/recipes" element={<RecipesPage />} />
-          <Route path="/admin" element={<AdminDashboardPage />} />
+
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboardPage />
+              </AdminRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>
