@@ -3,11 +3,21 @@ import {
   getAllClasses,
   registerToClass,
   cancelClassRegistration,
+  createClass,
 } from "../services/classService";
+import { getProfile } from "../services/userService";
 
 function ClassesPage() {
   const [classes, setClasses] = useState([]);
   const [message, setMessage] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    date: "",
+    spots: "",
+  });
 
   async function loadClasses() {
     const data = await getAllClasses();
@@ -21,61 +31,155 @@ function ClassesPage() {
   }
 
   useEffect(() => {
-    loadClasses();
+    async function initPage() {
+      await loadClasses();
+
+      const profileData = await getProfile();
+      if (profileData.ok && profileData.user?.role === "admin") {
+        setIsAdmin(true);
+      }
+    }
+
+    initPage();
   }, []);
 
   const handleRegister = async (classId) => {
     const data = await registerToClass(classId);
     setMessage(data.message || "");
-
     await loadClasses();
   };
 
   const handleCancel = async (classId) => {
     const data = await cancelClassRegistration(classId);
     setMessage(data.message || "");
+    await loadClasses();
+  };
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleCreateClass = async (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    const data = await createClass(form);
+
+    if (!data.ok) {
+      setMessage(data.message || "שגיאה ביצירת סדנה");
+      return;
+    }
+
+    setMessage("הסדנה נוצרה בהצלחה");
+    setForm({
+      title: "",
+      description: "",
+      date: "",
+      spots: "",
+    });
 
     await loadClasses();
   };
 
   return (
     <div style={styles.page}>
-      <h1 style={styles.title}>הסדנאות הקרובות</h1>
+      <h1 style={styles.title}>
+        {isAdmin ? "ניהול סדנאות" : "הסדנאות הקרובות"}
+      </h1>
 
       {message && <p style={styles.message}>{message}</p>}
 
-      <div style={styles.grid}>
-        {classes.map((item) => (
-          <div key={item.id} style={styles.card}>
-            <h2 style={styles.cardTitle}>{item.title}</h2>
-            <p><strong>תיאור:</strong> {item.description}</p>
-            <p>
-              <strong>תאריך:</strong>{" "}
-              {new Date(item.date).toLocaleString("he-IL")}
-            </p>
-            <p><strong>מקומות:</strong> {item.spots}</p>
-            <p><strong>נרשמו:</strong> {item.registered_count}</p>
-            <p><strong>מקומות פנויים:</strong> {item.spots_left}</p>
-            <p><strong>יוצר:</strong> {item.created_by_name || "לא ידוע"}</p>
+      <div style={styles.layout}>
+        {isAdmin && (
+          <div style={styles.formCard}>
+            <h2>יצירת סדנה חדשה</h2>
 
-            {item.is_registered ? (
-              <button
-                style={{ ...styles.button, backgroundColor: "#b23b3b" }}
-                onClick={() => handleCancel(item.id)}
-              >
-                בטל הרשמה
+            <form onSubmit={handleCreateClass} style={styles.form}>
+              <input
+                type="text"
+                name="title"
+                placeholder="כותרת הסדנה"
+                value={form.title}
+                onChange={handleChange}
+                style={styles.input}
+              />
+
+              <textarea
+                name="description"
+                placeholder="תיאור"
+                value={form.description}
+                onChange={handleChange}
+                style={styles.textarea}
+              />
+
+              <input
+                type="datetime-local"
+                name="date"
+                value={form.date}
+                onChange={handleChange}
+                style={styles.input}
+              />
+
+              <input
+                type="number"
+                name="spots"
+                placeholder="מספר מקומות"
+                value={form.spots}
+                onChange={handleChange}
+                style={styles.input}
+              />
+
+              <button type="submit" style={styles.button}>
+                צור סדנה
               </button>
-            ) : (
-              <button
-                style={styles.button}
-                onClick={() => handleRegister(item.id)}
-                disabled={item.spots_left <= 0}
-              >
-                {item.spots_left <= 0 ? "מלא" : "הירשם לסדנה"}
-              </button>
-            )}
+            </form>
           </div>
-        ))}
+        )}
+
+        <div style={styles.listSection}>
+          <h2>{isAdmin ? "כל הסדנאות" : "סדנאות זמינות"}</h2>
+
+          <div style={styles.grid}>
+            {classes.map((item) => (
+              <div key={item.id} style={styles.card}>
+                <h2 style={styles.cardTitle}>{item.title}</h2>
+                <p><strong>תיאור:</strong> {item.description || "ללא תיאור"}</p>
+                <p>
+                  <strong>תאריך:</strong>{" "}
+                  {new Date(item.date).toLocaleString("he-IL")}
+                </p>
+                <p><strong>מקומות:</strong> {item.spots}</p>
+                <p><strong>נרשמו:</strong> {item.registered_count}</p>
+                <p><strong>מקומות פנויים:</strong> {item.spots_left}</p>
+                <p><strong>יוצר:</strong> {item.created_by_name || "לא ידוע"}</p>
+
+                {!isAdmin && (
+                  <>
+                    {item.is_registered ? (
+                      <button
+                        style={{ ...styles.button, backgroundColor: "#b23b3b" }}
+                        onClick={() => handleCancel(item.id)}
+                      >
+                        בטל הרשמה
+                      </button>
+                    ) : (
+                      <button
+                        style={styles.button}
+                        onClick={() => handleRegister(item.id)}
+                        disabled={item.spots_left <= 0}
+                      >
+                        {item.spots_left <= 0 ? "מלא" : "הירשם לסדנה"}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -95,6 +199,53 @@ const styles = {
     fontWeight: "bold",
     color: "#8a4b08",
   },
+  layout: {
+    display: "grid",
+    gridTemplateColumns: "1fr 2fr",
+    gap: "24px",
+  },
+  formCard: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "14px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+    height: "fit-content",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    marginTop: "15px",
+  },
+  input: {
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+  },
+  textarea: {
+    minHeight: "100px",
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    resize: "vertical",
+  },
+  button: {
+    marginTop: "15px",
+    width: "100%",
+    padding: "12px",
+    border: "none",
+    borderRadius: "8px",
+    backgroundColor: "#d98c3f",
+    color: "#fff",
+    fontSize: "16px",
+    cursor: "pointer",
+  },
+  listSection: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "14px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+  },
   grid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -109,16 +260,6 @@ const styles = {
   cardTitle: {
     marginTop: 0,
     marginBottom: "15px",
-  },
-  button: {
-    marginTop: "15px",
-    width: "100%",
-    padding: "12px",
-    border: "none",
-    borderRadius: "8px",
-    backgroundColor: "#d98c3f",
-    color: "#fff",
-    fontSize: "16px",
   },
 };
 

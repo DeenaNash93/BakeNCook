@@ -24,3 +24,16 @@ export async function cancelClassRegistration(classId) {
 
   return res.json();
 }
+
+export async function createClass(formData) {
+  const res = await fetch("http://localhost:5000/api/classes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(formData),
+  });
+
+  return res.json();
+}

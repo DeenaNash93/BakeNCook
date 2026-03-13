@@ -20,27 +20,6 @@ function Navbar({ isAdmin = false, logoSrc = "", userName = "" }) {
       </div>
 
       <div className="nav-links">
-        <NavLink
-          to="/classes"
-          className={({ isActive }) => (isActive ? "active-link" : "")}
-        >
-          סדנאות
-        </NavLink>
-
-        <NavLink
-          to="/my-classes"
-          className={({ isActive }) => (isActive ? "active-link" : "")}
-        >
-          הסדנאות שלי
-        </NavLink>
-
-        <NavLink
-          to="/recipes"
-          className={({ isActive }) => (isActive ? "active-link" : "")}
-        >
-          מתכונים
-        </NavLink>
-
         {isAdmin && (
           <NavLink
             to="/admin"
@@ -49,6 +28,29 @@ function Navbar({ isAdmin = false, logoSrc = "", userName = "" }) {
             דשבורד מנהל
           </NavLink>
         )}
+
+        <NavLink
+          to="/classes"
+          className={({ isActive }) => (isActive ? "active-link" : "")}
+        >
+          סדנאות
+        </NavLink>
+
+        {!isAdmin && (
+          <NavLink
+            to="/my-classes"
+            className={({ isActive }) => (isActive ? "active-link" : "")}
+          >
+            הסדנאות שלי
+          </NavLink>
+        )}
+
+        <NavLink
+          to="/recipes"
+          className={({ isActive }) => (isActive ? "active-link" : "")}
+        >
+          מתכונים
+        </NavLink>
       </div>
 
       <div className="navbar-left">

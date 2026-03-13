@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../services/authService";
-
+import logo from "../assets/logo.png";
 function LoginPage() {
   const navigate = useNavigate();
 
@@ -40,6 +40,7 @@ function LoginPage() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
+        <img src={logo} alt="BakeNCook" style={styles.logo} />
         <h1>התחברות</h1>
 
         <form onSubmit={handleSubmit} style={styles.form}>
@@ -77,6 +78,12 @@ function LoginPage() {
 }
 
 const styles = {
+  logo: {
+  width: "140px",
+  display: "block",
+  margin: "0 auto 15px auto",
+},
+
   page: {
     minHeight: "100vh",
     display: "flex",
