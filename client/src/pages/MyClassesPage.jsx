@@ -12,7 +12,9 @@ function MyClassesPage() {
     const data = await getMyClasses();
 
     if (data.ok) {
-      setClasses(data.classes);
+      setClasses(data.classes || []);
+    } else {
+      setMessage("שגיאה בטעינת הסדנאות שלך");
     }
   }
 
@@ -23,58 +25,121 @@ function MyClassesPage() {
   const handleCancel = async (classId) => {
     const data = await cancelRegistration(classId);
 
-    setMessage(data.message);
-    loadMyClasses();
+    if (!data.ok) {
+      setMessage(data.message || "שגיאה בביטול הרשמה");
+      return;
+    }
+
+    setMessage(data.message || "ההרשמה בוטלה");
+    await loadMyClasses();
   };
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h1>הסדנאות שלי</h1>
+    <div style={styles.page}>
+      <h1 style={styles.title}>הסדנאות שלי</h1>
 
-      {message && <p>{message}</p>}
+      {message && <p style={styles.message}>{message}</p>}
 
       {classes.length === 0 ? (
-        <p>לא נרשמת לשום סדנה עדיין</p>
+        <div style={styles.emptyBox}>
+          <h2 style={styles.emptyTitle}>עדיין לא נרשמת לשום סדנה</h2>
+          <p style={styles.emptyText}>
+            אפשר להיכנס לעמוד הסדנאות ולהירשם למפגש שמתאים לך.
+          </p>
+        </div>
       ) : (
-        <table border="1" cellPadding="10">
-          <thead>
-            <tr>
-              <th>כותרת</th>
-              <th>תאריך</th>
-              <th>פעולה</th>
-            </tr>
-          </thead>
+        <div style={styles.grid}>
+          {classes.map((item) => (
+            <div key={item.id} style={styles.card}>
+              <h2 style={styles.cardTitle}>{item.title}</h2>
 
-          <tbody>
-            {classes.map((c) => (
-              <tr key={c.id}>
-                <td>{c.title}</td>
+              <p>
+                <strong>תיאור:</strong> {item.description || "ללא תיאור"}
+              </p>
 
-                <td>
-                  {new Date(c.date).toLocaleString("he-IL")}
-                </td>
+              <p>
+                <strong>תאריך:</strong>{" "}
+                {new Date(item.date).toLocaleString("he-IL")}
+              </p>
 
-                <td>
-                  <button
-                    onClick={() => handleCancel(c.id)}
-                    style={{
-                      background: "#c94f4f",
-                      color: "white",
-                      border: "none",
-                      padding: "6px 12px",
-                      borderRadius: "6px",
-                    }}
-                  >
-                    בטל הרשמה
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              <p>
+                <strong>מקומות:</strong> {item.spots}
+              </p>
+
+              <p>
+                <strong>יוצר הסדנה:</strong>{" "}
+                {item.created_by_name || "לא ידוע"}
+              </p>
+
+              <button
+                onClick={() => handleCancel(item.id)}
+                style={styles.cancelButton}
+              >
+                בטל הרשמה
+              </button>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
 }
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    backgroundColor: "#f8f8f8",
+    padding: "30px",
+  },
+  title: {
+    marginBottom: "20px",
+  },
+  message: {
+    marginBottom: "20px",
+    fontWeight: "bold",
+    color: "#8a4b08",
+  },
+  emptyBox: {
+    backgroundColor: "#fff",
+    padding: "30px",
+    borderRadius: "14px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+    textAlign: "center",
+  },
+  emptyTitle: {
+    marginTop: 0,
+    marginBottom: "10px",
+  },
+  emptyText: {
+    margin: 0,
+    color: "#555",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "20px",
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "14px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+  },
+  cardTitle: {
+    marginTop: 0,
+    marginBottom: "15px",
+  },
+  cancelButton: {
+    marginTop: "15px",
+    width: "100%",
+    padding: "12px",
+    border: "none",
+    borderRadius: "8px",
+    backgroundColor: "#c94f4f",
+    color: "#fff",
+    fontSize: "16px",
+    cursor: "pointer",
+  },
+};
 
 export default MyClassesPage;
