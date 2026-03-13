@@ -191,37 +191,43 @@ const styles = {
     backgroundColor: "#f8f8f8",
     padding: "30px",
   },
+
   title: {
     marginBottom: "20px",
   },
+
   message: {
     marginBottom: "20px",
     fontWeight: "bold",
     color: "#8a4b08",
   },
+
   layout: {
-    display: "grid",
-    gridTemplateColumns: "1fr 2fr",
-    gap: "24px",
+    display: "block",
   },
+
   formCard: {
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "14px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-    height: "fit-content",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+    maxWidth: "500px",
+    marginBottom: "30px",
   },
+
   form: {
     display: "flex",
     flexDirection: "column",
     gap: "12px",
     marginTop: "15px",
   },
+
   input: {
     padding: "12px",
     borderRadius: "8px",
     border: "1px solid #ccc",
   },
+
   textarea: {
     minHeight: "100px",
     padding: "12px",
@@ -229,8 +235,9 @@ const styles = {
     border: "1px solid #ccc",
     resize: "vertical",
   },
+
   button: {
-    marginTop: "15px",
+    marginTop: "10px",
     width: "100%",
     padding: "12px",
     border: "none",
@@ -240,23 +247,26 @@ const styles = {
     fontSize: "16px",
     cursor: "pointer",
   },
+
   listSection: {
-    backgroundColor: "#fff",
-    padding: "20px",
-    borderRadius: "14px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+    width: "100%",
   },
+
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "20px",
+    gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+    gap: "24px",
+    width: "100%",
   },
+
   card: {
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "14px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+    transition: "0.2s",
   },
+
   cardTitle: {
     marginTop: 0,
     marginBottom: "15px",

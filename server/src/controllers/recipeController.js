@@ -37,12 +37,21 @@ exports.createRecipe = async (req, res) => {
 };
 
 // כל המתכונים המאושרים (public)
+
 exports.getApprovedRecipes = async (req, res) => {
   try {
     const [rows] = await pool.query(
       `
-      SELECT r.id, r.title, r.category, r.prep_time, r.image, r.created_at,
-             u.full_name AS author
+      SELECT 
+        r.id,
+        r.title,
+        r.category,
+        r.prep_time,
+        r.ingredients,
+        r.instructions,
+        r.image,
+        r.created_at,
+        u.full_name AS author
       FROM recipes r
       LEFT JOIN users u ON u.id = r.user_id
       WHERE r.status='approved'
@@ -55,6 +64,8 @@ exports.getApprovedRecipes = async (req, res) => {
     res.status(500).json({ ok: false, error: err.message });
   }
 };
+
+
 
 // מתכונים שלי (user) - כל הסטטוסים
 exports.getMyRecipes = async (req, res) => {

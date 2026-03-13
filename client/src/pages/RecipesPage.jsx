@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getApprovedRecipes,
   createRecipe,
@@ -15,10 +15,11 @@ function RecipesPage() {
   const [imageFile, setImageFile] = useState(null);
   const [selectedImages, setSelectedImages] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("הכל");
 
   const [form, setForm] = useState({
     title: "",
-    category: "",
+    category: "מתוקים",
     prep_time: "",
     ingredients: "",
     instructions: "",
@@ -56,6 +57,11 @@ function RecipesPage() {
     initPage();
   }, []);
 
+  const filteredRecipes = useMemo(() => {
+    if (selectedCategory === "הכל") return recipes;
+    return recipes.filter((recipe) => recipe.category === selectedCategory);
+  }, [recipes, selectedCategory]);
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -86,7 +92,7 @@ function RecipesPage() {
     setMessage("המתכון נשלח לאישור בהצלחה");
     setForm({
       title: "",
-      category: "",
+      category: "מתוקים",
       prep_time: "",
       ingredients: "",
       instructions: "",
@@ -158,14 +164,15 @@ function RecipesPage() {
               style={styles.input}
             />
 
-            <input
-              type="text"
+            <select
               name="category"
-              placeholder="קטגוריה"
               value={form.category}
               onChange={handleChange}
               style={styles.input}
-            />
+            >
+              <option value="מתוקים">מתוקים</option>
+              <option value="מלוחים">מלוחים</option>
+            </select>
 
             <input
               type="number"
@@ -206,10 +213,45 @@ function RecipesPage() {
         </div>
 
         <div style={styles.listSection}>
-          <h2>מתכונים מאושרים</h2>
+          <h2>מתכוני הסדנה ומשתתפיה</h2>
+
+          <div style={styles.filterBox}>
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("הכל")}
+              style={{
+                ...styles.filterButton,
+                ...(selectedCategory === "הכל" ? styles.activeFilter : {}),
+              }}
+            >
+              הכל
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("מתוקים")}
+              style={{
+                ...styles.filterButton,
+                ...(selectedCategory === "מתוקים" ? styles.activeFilter : {}),
+              }}
+            >
+              מתוקים
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("מלוחים")}
+              style={{
+                ...styles.filterButton,
+                ...(selectedCategory === "מלוחים" ? styles.activeFilter : {}),
+              }}
+            >
+              מלוחים
+            </button>
+          </div>
 
           <div style={styles.grid}>
-            {recipes.map((recipe) => (
+            {filteredRecipes.map((recipe) => (
               <div key={recipe.id} style={styles.card}>
                 {recipe.image && (
                   <img
@@ -220,12 +262,23 @@ function RecipesPage() {
                 )}
 
                 <h3>{recipe.title}</h3>
+
                 <p>
                   <strong>קטגוריה:</strong> {recipe.category || "ללא"}
                 </p>
+
                 <p>
                   <strong>זמן הכנה:</strong> {recipe.prep_time || "-"} דקות
                 </p>
+
+                <p>
+                  <strong>מצרכים:</strong> {recipe.ingredients || "ללא"}
+                </p>
+
+                <p>
+                  <strong>אופן הכנה:</strong> {recipe.instructions || "ללא"}
+                </p>
+
                 <p>
                   <strong>מאת:</strong> {recipe.author || "לא ידוע"}
                 </p>
@@ -265,16 +318,19 @@ function RecipesPage() {
                   {pendingRecipes.map((recipe) => (
                     <div key={recipe.id} style={styles.card}>
                       <h3>{recipe.title}</h3>
+
                       <p>
                         <strong>קטגוריה:</strong> {recipe.category || "ללא"}
                       </p>
+
                       <p>
-                        <strong>זמן הכנה:</strong> {recipe.prep_time || "-"}{" "}
-                        דקות
+                        <strong>זמן הכנה:</strong> {recipe.prep_time || "-"} דקות
                       </p>
+
                       <p>
                         <strong>מאת:</strong> {recipe.author || "לא ידוע"}
                       </p>
+
                       <p>
                         <strong>אימייל:</strong> {recipe.email || "-"}
                       </p>
@@ -369,6 +425,25 @@ const styles = {
     padding: "20px",
     borderRadius: "14px",
     boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+  },
+  filterBox: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "15px",
+    marginBottom: "20px",
+    flexWrap: "wrap",
+  },
+  filterButton: {
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    backgroundColor: "#fff",
+    cursor: "pointer",
+  },
+  activeFilter: {
+    backgroundColor: "#d98c3f",
+    color: "#fff",
+    border: "none",
   },
   grid: {
     display: "grid",
