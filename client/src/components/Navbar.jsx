@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
-function Navbar({ isAdmin = false, logoSrc = "" }) {
+function Navbar({ isAdmin = false, logoSrc = "", userName = "" }) {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -15,7 +15,9 @@ function Navbar({ isAdmin = false, logoSrc = "" }) {
 
   return (
     <nav className="navbar">
-      {logoSrc && <img src={logoSrc} alt="BakeNCook" className="logo" />}
+      <div className="navbar-right">
+        {logoSrc && <img src={logoSrc} alt="BakeNCook" className="logo" />}
+      </div>
 
       <div className="nav-links">
         <NavLink
@@ -47,6 +49,10 @@ function Navbar({ isAdmin = false, logoSrc = "" }) {
             דשבורד מנהל
           </NavLink>
         )}
+      </div>
+
+      <div className="navbar-left">
+        {userName && <span className="welcome-text">שלום, {userName}</span>}
 
         <button className="logout-btn" onClick={handleLogout}>
           התנתקות
