@@ -27,5 +27,17 @@ router.patch(
   upload.single("image"),
   recipeController.uploadRecipeImage
 );
+router.patch(
+  "/:id/upload-image",
+  requireAuth,
+  upload.single("image"),
+  recipeController.uploadOwnRecipeImage
+);
+router.delete(
+  "/:id",
+  requireAuth,
+  requireAdmin,
+  recipeController.deleteRecipe
+);
 
 module.exports = router;

@@ -3,7 +3,13 @@ export async function getApprovedRecipes() {
     credentials: "include",
   });
 
-  return res.json();
+  const data = await res.json();
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    ...data,
+  };
 }
 
 export async function getMyRecipes() {
@@ -11,7 +17,13 @@ export async function getMyRecipes() {
     credentials: "include",
   });
 
-  return res.json();
+  const data = await res.json();
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    ...data,
+  };
 }
 
 export async function createRecipe(formData) {
@@ -24,38 +36,106 @@ export async function createRecipe(formData) {
     body: JSON.stringify(formData),
   });
 
-  return res.json();
+  const data = await res.json();
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    ...data,
+  };
 }
 
 export async function uploadRecipeImage(recipeId, imageFile) {
   const formData = new FormData();
   formData.append("image", imageFile);
 
-  const res = await fetch(`http://localhost:5000/api/recipes/${recipeId}/image`, {
-    method: "PATCH",
-    credentials: "include",
-    body: formData,
-  });
+  const res = await fetch(
+    `http://localhost:5000/api/recipes/${recipeId}/upload-image`,
+    {
+      method: "PATCH",
+      credentials: "include",
+      body: formData,
+    }
+  );
 
-  return res.json();
+  const data = await res.json();
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    ...data,
+  };
 }
+
+export async function adminReplaceRecipeImage(recipeId, imageFile) {
+  const formData = new FormData();
+  formData.append("image", imageFile);
+
+  const res = await fetch(
+    `http://localhost:5000/api/recipes/${recipeId}/image`,
+    {
+      method: "PATCH",
+      credentials: "include",
+      body: formData,
+    }
+  );
+
+  const data = await res.json();
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    ...data,
+  };
+}
+
 export async function getPendingRecipes() {
   const res = await fetch("http://localhost:5000/api/recipes/pending", {
     credentials: "include",
   });
 
-  return res.json();
+  const data = await res.json();
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    ...data,
+  };
 }
 
 export async function updateRecipeStatus(recipeId, status) {
-  const res = await fetch(`http://localhost:5000/api/recipes/${recipeId}/status`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+  const res = await fetch(
+    `http://localhost:5000/api/recipes/${recipeId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  const data = await res.json();
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    ...data,
+  };
+}
+
+export async function deleteRecipe(recipeId) {
+  const res = await fetch(`http://localhost:5000/api/recipes/${recipeId}`, {
+    method: "DELETE",
     credentials: "include",
-    body: JSON.stringify({ status }),
   });
 
-  return res.json();
+  const data = await res.json();
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    ...data,
+  };
 }

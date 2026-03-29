@@ -57,6 +57,12 @@ exports.getDashboardStats = async (req, res) => {
       ORDER BY c.date ASC
     `);
 
+    const [users] = await pool.query(`
+      SELECT id, full_name, email, role, status, created_at
+      FROM users
+      ORDER BY created_at DESC
+    `);
+
     res.json({
       ok: true,
       stats: {
@@ -72,11 +78,50 @@ exports.getDashboardStats = async (req, res) => {
         pending_recipes: pendingRecipes.pending_recipes,
       },
       classes: classStats,
+      users,
     });
   } catch (err) {
     res.status(500).json({
       ok: false,
       error: err.message,
     });
+  }
+};
+
+exports.blockUser = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+
+    const [result] = await pool.query(
+      "UPDATE users SET status = 'blocked' WHERE id = ?",
+      [userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: "משתמש לא נמצא" });
+    }
+
+    res.json({ ok: true, message: "המשתמש נחסם בהצלחה" });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+};
+
+exports.unblockUser = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+
+    const [result] = await pool.query(
+      "UPDATE users SET status = 'active' WHERE id = ?",
+      [userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: "משתמש לא נמצא" });
+    }
+
+    res.json({ ok: true, message: "החסימה בוטלה בהצלחה" });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
   }
 };

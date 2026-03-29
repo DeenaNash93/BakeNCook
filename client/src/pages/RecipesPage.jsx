@@ -5,6 +5,7 @@ import {
   uploadRecipeImage,
   getPendingRecipes,
   updateRecipeStatus,
+  deleteRecipe,
 } from "../services/recipeService";
 import { getProfile } from "../services/userService";
 
@@ -12,6 +13,7 @@ function RecipesPage() {
   const [recipes, setRecipes] = useState([]);
   const [pendingRecipes, setPendingRecipes] = useState([]);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [selectedImages, setSelectedImages] = useState({});
   const [isAdmin, setIsAdmin] = useState(false);
@@ -32,6 +34,7 @@ function RecipesPage() {
       setRecipes(data.recipes || []);
     } else {
       setMessage("שגיאה בטעינת מתכונים");
+      setMessageType("error");
     }
   }
 
@@ -69,27 +72,46 @@ function RecipesPage() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setMessage("");
+  setMessageType("");
 
+  try {
     const data = await createRecipe(form);
 
     if (!data.ok) {
       setMessage(data.message || "שגיאה בהוספת מתכון");
+      setMessageType("error");
+      alert("❌ שגיאה בשליחת המתכון");
       return;
     }
+
+    let imageUploadedSuccessfully = false;
 
     if (imageFile) {
       const uploadData = await uploadRecipeImage(data.recipeId, imageFile);
 
       if (!uploadData.ok) {
-        setMessage("המתכון נשמר, אבל העלאת התמונה נכשלה");
+        setMessage("המתכון נשלח, אך העלאת התמונה נכשלה");
+        setMessageType("error");
+        alert("⚠️ המתכון נשלח אבל העלאת התמונה נכשלה");
         return;
       }
+
+      imageUploadedSuccessfully = true;
     }
 
-    setMessage("המתכון נשלח לאישור בהצלחה");
+    if (imageUploadedSuccessfully) {
+      setMessage("המתכון והתמונה נשלחו בהצלחה וממתינים לאישור המנהל");
+      alert("✅ המתכון והתמונה נשלחו בהצלחה!");
+    } else {
+      setMessage("המתכון נשלח בהצלחה וממתין לאישור המנהל");
+      alert("✅ המתכון נשלח בהצלחה!");
+    }
+
+    setMessageType("success");
+
     setForm({
       title: "",
       category: "מתוקים",
@@ -97,13 +119,25 @@ function RecipesPage() {
       ingredients: "",
       instructions: "",
     });
+
     setImageFile(null);
 
     await loadRecipes();
     if (isAdmin) {
       await loadPendingRecipes();
     }
-  };
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  } catch (error) {
+    console.error("Recipe submit error:", error);
+    setMessage("אירעה שגיאה בשליחת המתכון");
+    setMessageType("error");
+    alert("❌ אירעה שגיאה בשליחת המתכון");
+  }
+};
 
   const handleImageSelect = (recipeId, file) => {
     setSelectedImages((prev) => ({
@@ -117,17 +151,20 @@ function RecipesPage() {
 
     if (!file) {
       setMessage("יש לבחור תמונה קודם");
+      setMessageType("error");
       return;
     }
 
-    const data = await uploadRecipeImage(recipeId, file);
+    const data = await adminReplaceRecipeImage(recipeId, file);
 
     if (!data.ok) {
       setMessage(data.message || "שגיאה בהחלפת התמונה");
+      setMessageType("error");
       return;
     }
 
     setMessage("התמונה הוחלפה בהצלחה");
+    setMessageType("success");
     await loadRecipes();
   };
 
@@ -136,23 +173,57 @@ function RecipesPage() {
 
     if (!data.ok) {
       setMessage(data.message || "שגיאה בעדכון סטטוס מתכון");
+      setMessageType("error");
       return;
     }
 
-    setMessage("סטטוס המתכון עודכן בהצלחה");
+    setMessage(
+      status === "approved"
+        ? "המתכון אושר בהצלחה"
+        : "המתכון נדחה בהצלחה"
+    );
+    setMessageType("success");
     await loadRecipes();
     await loadPendingRecipes();
+  };
+
+  const handleDeleteRecipe = async (recipeId) => {
+    const data = await deleteRecipe(recipeId);
+
+    if (!data.ok) {
+      setMessage(data.message || "שגיאה במחיקת מתכון");
+      setMessageType("error");
+      return;
+    }
+
+    setMessage("המתכון נמחק בהצלחה");
+    setMessageType("success");
+    await loadRecipes();
+    if (isAdmin) {
+      await loadPendingRecipes();
+    }
   };
 
   return (
     <div style={styles.page}>
       <h1 style={styles.title}>המתכונים</h1>
 
-      {message && <p style={styles.message}>{message}</p>}
-
       <div style={styles.layout}>
         <div style={styles.formCard}>
           <h2>הוספת מתכון חדש</h2>
+
+          {message && (
+            <div
+              style={{
+                ...styles.alertBox,
+                ...(messageType === "success"
+                  ? styles.successBox
+                  : styles.errorBox),
+              }}
+            >
+              {message}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} style={styles.form}>
             <input
@@ -250,62 +321,76 @@ function RecipesPage() {
             </button>
           </div>
 
-          <div style={styles.grid}>
-            {filteredRecipes.map((recipe) => (
-              <div key={recipe.id} style={styles.card}>
-                {recipe.image && (
-                  <img
-                    src={`http://localhost:5000${recipe.image}`}
-                    alt={recipe.title}
-                    style={styles.image}
-                  />
-                )}
-
-                <h3>{recipe.title}</h3>
-
-                <p>
-                  <strong>קטגוריה:</strong> {recipe.category || "ללא"}
-                </p>
-
-                <p>
-                  <strong>זמן הכנה:</strong> {recipe.prep_time || "-"} דקות
-                </p>
-
-                <p>
-                  <strong>מצרכים:</strong> {recipe.ingredients || "ללא"}
-                </p>
-
-                <p>
-                  <strong>אופן הכנה:</strong> {recipe.instructions || "ללא"}
-                </p>
-
-                <p>
-                  <strong>מאת:</strong> {recipe.author || "לא ידוע"}
-                </p>
-
-                {isAdmin && (
-                  <div style={styles.replaceImageBox}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) =>
-                        handleImageSelect(recipe.id, e.target.files[0])
-                      }
-                      style={styles.input}
+          {filteredRecipes.length === 0 ? (
+            <p>אין מתכונים בקטגוריה הזו</p>
+          ) : (
+            <div style={styles.grid}>
+              {filteredRecipes.map((recipe) => (
+                <div key={recipe.id} style={styles.card}>
+                  {recipe.image && (
+                    <img
+                      src={`http://localhost:5000${recipe.image}`}
+                      alt={recipe.title}
+                      style={styles.image}
                     />
+                  )}
 
-                    <button
-                      type="button"
-                      onClick={() => handleReplaceImage(recipe.id)}
-                      style={styles.replaceButton}
-                    >
-                      החלף תמונה
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  <h3>{recipe.title}</h3>
+
+                  <p>
+                    <strong>קטגוריה:</strong> {recipe.category || "ללא"}
+                  </p>
+
+                  <p>
+                    <strong>זמן הכנה:</strong> {recipe.prep_time || "-"} דקות
+                  </p>
+
+                  <p>
+                    <strong>מצרכים:</strong> {recipe.ingredients || "ללא"}
+                  </p>
+
+                  <p>
+                    <strong>אופן הכנה:</strong> {recipe.instructions || "ללא"}
+                  </p>
+
+                  <p>
+                    <strong>מאת:</strong> {recipe.author || "לא ידוע"}
+                  </p>
+
+                  {isAdmin && (
+                    <>
+                      <div style={styles.replaceImageBox}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleImageSelect(recipe.id, e.target.files[0])
+                          }
+                          style={styles.input}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => handleReplaceImage(recipe.id)}
+                          style={styles.replaceButton}
+                        >
+                          החלף תמונה
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRecipe(recipe.id)}
+                        style={styles.deleteButton}
+                      >
+                        מחק מתכון
+                      </button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {isAdmin && (
             <div style={{ marginTop: "35px" }}>
@@ -317,6 +402,14 @@ function RecipesPage() {
                 <div style={styles.grid}>
                   {pendingRecipes.map((recipe) => (
                     <div key={recipe.id} style={styles.card}>
+
+                      {recipe.image && (
+                        <img
+                          src={`http://localhost:5000${recipe.image}`}
+                          alt={recipe.title}
+                          style={styles.image}
+                        />
+                      )}
                       <h3>{recipe.title}</h3>
 
                       <p>
@@ -325,6 +418,14 @@ function RecipesPage() {
 
                       <p>
                         <strong>זמן הכנה:</strong> {recipe.prep_time || "-"} דקות
+                      </p>
+
+                      <p>
+                        <strong>מצרכים:</strong> {recipe.ingredients || "ללא"}
+                      </p>
+
+                      <p>
+                        <strong>אופן הכנה:</strong> {recipe.instructions || "ללא"}
                       </p>
 
                       <p>
@@ -377,11 +478,6 @@ const styles = {
   title: {
     marginBottom: "20px",
   },
-  message: {
-    fontWeight: "bold",
-    color: "#8a4b08",
-    marginBottom: "20px",
-  },
   layout: {
     display: "grid",
     gridTemplateColumns: "1fr 2fr",
@@ -419,12 +515,30 @@ const styles = {
     backgroundColor: "#d98c3f",
     color: "#fff",
     fontSize: "16px",
+    cursor: "pointer",
   },
   listSection: {
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "14px",
     boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+  },
+  alertBox: {
+    padding: "12px 14px",
+    borderRadius: "10px",
+    marginTop: "12px",
+    marginBottom: "14px",
+    fontWeight: "bold",
+  },
+  successBox: {
+    backgroundColor: "#e8f7e8",
+    color: "#1f6b1f",
+    border: "1px solid #b7e0b7",
+  },
+  errorBox: {
+    backgroundColor: "#fdeaea",
+    color: "#a33a3a",
+    border: "1px solid #efb5b5",
   },
   filterBox: {
     display: "flex",
@@ -447,7 +561,7 @@ const styles = {
   },
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
     gap: "18px",
     marginTop: "15px",
   },
@@ -499,6 +613,16 @@ const styles = {
     border: "none",
     borderRadius: "8px",
     backgroundColor: "#d9534f",
+    color: "#fff",
+    cursor: "pointer",
+  },
+  deleteButton: {
+    marginTop: "12px",
+    width: "100%",
+    padding: "10px",
+    border: "none",
+    borderRadius: "8px",
+    backgroundColor: "#8b1e1e",
     color: "#fff",
     cursor: "pointer",
   },

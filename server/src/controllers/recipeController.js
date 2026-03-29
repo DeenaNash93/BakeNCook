@@ -91,11 +91,20 @@ exports.getPendingRecipes = async (req, res) => {
   try {
     const [rows] = await pool.query(
       `
-      SELECT r.id, r.title, r.category, r.prep_time, r.created_at,
-             u.full_name AS author, u.email
+      SELECT 
+        r.id,
+        r.title,
+        r.category,
+        r.prep_time,
+        r.ingredients,
+        r.instructions,
+        r.image,
+        r.created_at,
+        u.full_name AS author,
+        u.email
       FROM recipes r
       LEFT JOIN users u ON u.id = r.user_id
-      WHERE r.status='pending'
+      WHERE r.status = 'pending'
       ORDER BY r.created_at ASC
       `
     );
@@ -157,5 +166,74 @@ exports.uploadRecipeImage = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
+  }
+};
+exports.uploadOwnRecipeImage = async (req, res) => {
+  try {
+    const recipeId = Number(req.params.id);
+
+    if (!req.file) {
+      return res.status(400).json({ ok: false, message: "לא נשלחה תמונה" });
+    }
+
+    const [rows] = await pool.query(
+      "SELECT id, user_id FROM recipes WHERE id = ?",
+      [recipeId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ ok: false, message: "מתכון לא נמצא" });
+    }
+
+    const recipe = rows[0];
+
+    if (recipe.user_id !== req.user.id) {
+      return res.status(403).json({
+        ok: false,
+        message: "אין לך הרשאה להעלות תמונה למתכון הזה",
+      });
+    }
+
+    const imagePath = `/uploads/${req.file.filename}`;
+
+    await pool.query(
+      "UPDATE recipes SET image = ? WHERE id = ?",
+      [imagePath, recipeId]
+    );
+
+    res.json({
+      ok: true,
+      message: "התמונה נשמרה בהצלחה",
+      image: imagePath,
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+};
+exports.deleteRecipe = async (req, res) => {
+  try {
+    const recipeId = Number(req.params.id);
+
+    const [result] = await pool.query(
+      "DELETE FROM recipes WHERE id = ?",
+      [recipeId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        ok: false,
+        message: "מתכון לא נמצא",
+      });
+    }
+
+    res.json({
+      ok: true,
+      message: "המתכון נמחק בהצלחה",
+    });
+  } catch (err) {
+    res.status(500).json({
+      ok: false,
+      error: err.message,
+    });
   }
 };
