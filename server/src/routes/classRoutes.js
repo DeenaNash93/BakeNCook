@@ -10,5 +10,6 @@ router.get("/my", requireAuth, classController.getMyClasses);
 router.post("/", requireAuth, requireAdmin, classController.createClass);
 router.post("/:id/register", requireAuth, registrationController.registerToClass);
 router.post("/:id/cancel", requireAuth, registrationController.cancelRegistration);
+router.delete("/:id", requireAuth, requireAdmin, classController.deleteClass);
 router.get("/ping", (req, res) => res.json({ ok: true, route: "classes ping" }));
 module.exports = router;

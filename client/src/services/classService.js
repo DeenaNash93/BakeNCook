@@ -37,3 +37,12 @@ export async function createClass(formData) {
 
   return res.json();
 }
+
+export async function deleteClass(classId) {
+  const res = await fetch(`http://localhost:5000/api/classes/${classId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  return res.json();
+}

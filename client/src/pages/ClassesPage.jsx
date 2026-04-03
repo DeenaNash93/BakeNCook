@@ -4,6 +4,7 @@ import {
   registerToClass,
   cancelClassRegistration,
   createClass,
+  deleteClass,
 } from "../services/classService";
 import { getProfile } from "../services/userService";
 
@@ -55,6 +56,18 @@ function ClassesPage() {
     await loadClasses();
   };
 
+  const handleDeleteClass = async (classId) => {
+    const confirmed = window.confirm("האם למחוק את הסדנה הזו? פעולה זו לא ניתנת לביטול.");
+    if (!confirmed) return;
+
+    const data = await deleteClass(classId);
+    setMessage(data.message || "");
+
+    if (data.ok) {
+      await loadClasses();
+    }
+  };
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -93,6 +106,57 @@ function ClassesPage() {
       {message && <p style={styles.message}>{message}</p>}
 
       <div style={styles.layout}>
+        <div style={styles.listSection}>
+          <h2>{isAdmin ? "כל הסדנאות" : "סדנאות זמינות"}</h2>
+
+          <div style={styles.grid}>
+            {classes.map((item) => (
+              <div key={item.id} style={styles.card}>
+                <h2 style={styles.cardTitle}>{item.title}</h2>
+                <p><strong>תיאור:</strong> {item.description || "ללא תיאור"}</p>
+                <p>
+                  <strong>תאריך:</strong>{" "}
+                  {new Date(item.date).toLocaleString("he-IL")}
+                </p>
+                <p><strong>מקומות:</strong> {item.spots}</p>
+                <p><strong>נרשמו:</strong> {item.registered_count}</p>
+                <p><strong>מקומות פנויים:</strong> {item.spots_left}</p>
+                <p><strong>יוצר:</strong> {item.created_by_name || "לא ידוע"}</p>
+
+                {isAdmin && (
+                  <button
+                    style={styles.deleteButton}
+                    onClick={() => handleDeleteClass(item.id)}
+                  >
+                    מחק סדנה
+                  </button>
+                )}
+
+                {!isAdmin && (
+                  <>
+                    {item.is_registered ? (
+                      <button
+                        style={{ ...styles.button, backgroundColor: "#b23b3b" }}
+                        onClick={() => handleCancel(item.id)}
+                      >
+                        בטל הרשמה
+                      </button>
+                    ) : (
+                      <button
+                        style={styles.button}
+                        onClick={() => handleRegister(item.id)}
+                        disabled={item.spots_left <= 0}
+                      >
+                        {item.spots_left <= 0 ? "מלא" : "הירשם לסדנה"}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
         {isAdmin && (
           <div style={styles.formCard}>
             <h2>יצירת סדנה חדשה</h2>
@@ -138,48 +202,6 @@ function ClassesPage() {
             </form>
           </div>
         )}
-
-        <div style={styles.listSection}>
-          <h2>{isAdmin ? "כל הסדנאות" : "סדנאות זמינות"}</h2>
-
-          <div style={styles.grid}>
-            {classes.map((item) => (
-              <div key={item.id} style={styles.card}>
-                <h2 style={styles.cardTitle}>{item.title}</h2>
-                <p><strong>תיאור:</strong> {item.description || "ללא תיאור"}</p>
-                <p>
-                  <strong>תאריך:</strong>{" "}
-                  {new Date(item.date).toLocaleString("he-IL")}
-                </p>
-                <p><strong>מקומות:</strong> {item.spots}</p>
-                <p><strong>נרשמו:</strong> {item.registered_count}</p>
-                <p><strong>מקומות פנויים:</strong> {item.spots_left}</p>
-                <p><strong>יוצר:</strong> {item.created_by_name || "לא ידוע"}</p>
-
-                {!isAdmin && (
-                  <>
-                    {item.is_registered ? (
-                      <button
-                        style={{ ...styles.button, backgroundColor: "#b23b3b" }}
-                        onClick={() => handleCancel(item.id)}
-                      >
-                        בטל הרשמה
-                      </button>
-                    ) : (
-                      <button
-                        style={styles.button}
-                        onClick={() => handleRegister(item.id)}
-                        disabled={item.spots_left <= 0}
-                      >
-                        {item.spots_left <= 0 ? "מלא" : "הירשם לסדנה"}
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -203,15 +225,26 @@ const styles = {
   },
 
   layout: {
-    display: "block",
+    display: "grid",
+    gridTemplateColumns: "1fr 2fr",
+    gridTemplateAreas: '"form list"',
+    gap: "24px",
+    alignItems: "start",
+  },
+
+  listSection: {
+    gridArea: "list",
   },
 
   formCard: {
+    gridArea: "form",
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "14px",
     boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-    maxWidth: "500px",
+    maxWidth: "520px",
+    width: "100%",
+    justifySelf: "start",
     marginBottom: "30px",
   },
 
@@ -243,6 +276,17 @@ const styles = {
     border: "none",
     borderRadius: "8px",
     backgroundColor: "#d98c3f",
+    color: "#fff",
+    fontSize: "16px",
+    cursor: "pointer",
+  },
+  deleteButton: {
+    marginTop: "10px",
+    width: "100%",
+    padding: "12px",
+    border: "none",
+    borderRadius: "8px",
+    backgroundColor: "#d9534f",
     color: "#fff",
     fontSize: "16px",
     cursor: "pointer",

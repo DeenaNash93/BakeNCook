@@ -25,6 +25,25 @@ exports.createClass = async (req, res) => {
   }
 };
 
+exports.deleteClass = async (req, res) => {
+  try {
+    const classId = Number(req.params.id);
+
+    const [result] = await pool.query(
+      "DELETE FROM classes WHERE id = ?",
+      [classId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, message: "הסדנה לא נמצאה" });
+    }
+
+    res.json({ ok: true, message: "הסדנה נמחקה בהצלחה" });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+};
+
 // שליפת כל הסדנאות
 exports.getAllClasses = async (req, res) => {
   try {
