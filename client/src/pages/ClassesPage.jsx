@@ -12,7 +12,6 @@ function ClassesPage() {
   const [classes, setClasses] = useState([]);
   const [message, setMessage] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(3);
 
   const [form, setForm] = useState({
     title: "",
@@ -120,7 +119,7 @@ function ClassesPage() {
               padding: "0 12px",
             }}
           >
-            {classes.slice(0, isAdmin ? classes.length : visibleCount).map((item) => (
+            {classes.map((item) => (
               <div key={item.id} style={styles.card}>
                 <h2 style={styles.cardTitle}>{item.title}</h2>
                 <p><strong>תיאור:</strong> {item.description || "ללא תיאור"}</p>
@@ -166,28 +165,6 @@ function ClassesPage() {
             ))}
           </div>
         </div>
-
-        {!isAdmin && (
-          <div style={styles.loadMoreWrapper}>
-            {visibleCount < classes.length && (
-              <button
-                style={styles.loadMoreButton}
-                onClick={() => setVisibleCount((prev) => Math.min(prev + 3, classes.length))}
-              >
-                ➜ טען 3 סדנאות נוספות
-              </button>
-            )}
-
-            {visibleCount > 3 && (
-              <button
-                style={{ ...styles.loadMoreButton, backgroundColor: "#777" }}
-                onClick={() => setVisibleCount((prev) => Math.max(prev - 3, 3))}
-              >
-                ← הפחת ל-3 האחרונות
-              </button>
-            )}
-          </div>
-        )}
 
         {isAdmin && (
           <div style={styles.formCard}>
@@ -345,21 +322,7 @@ const styles = {
     maxWidth: "400px",
     width: "100%",
   },
-  loadMoreWrapper: {
-    marginTop: "16px",
-    display: "flex",
-    gap: "10px",
-    justifyContent: "flex-start",
-    flexWrap: "wrap",
-  },
-  loadMoreButton: {
-    padding: "10px 16px",
-    border: "none",
-    borderRadius: "8px",
-    backgroundColor: "#5c88c3",
-    color: "#fff",
-    cursor: "pointer",
-  },
+
 
   cardTitle: {
     marginTop: 0,
