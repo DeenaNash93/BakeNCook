@@ -12,6 +12,7 @@ function ClassesPage() {
   const [classes, setClasses] = useState([]);
   const [message, setMessage] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(3);
 
   const [form, setForm] = useState({
     title: "",
@@ -109,8 +110,17 @@ function ClassesPage() {
         <div style={styles.listSection}>
           <h2>{isAdmin ? "כל הסדנאות" : "סדנאות זמינות"}</h2>
 
-          <div style={styles.grid}>
-            {classes.map((item) => (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(320px, 1fr))",
+              gap: "40px",
+              width: "100%",
+              justifyItems: "stretch",
+              padding: "0 12px",
+            }}
+          >
+            {classes.slice(0, isAdmin ? classes.length : visibleCount).map((item) => (
               <div key={item.id} style={styles.card}>
                 <h2 style={styles.cardTitle}>{item.title}</h2>
                 <p><strong>תיאור:</strong> {item.description || "ללא תיאור"}</p>
@@ -156,6 +166,28 @@ function ClassesPage() {
             ))}
           </div>
         </div>
+
+        {!isAdmin && (
+          <div style={styles.loadMoreWrapper}>
+            {visibleCount < classes.length && (
+              <button
+                style={styles.loadMoreButton}
+                onClick={() => setVisibleCount((prev) => Math.min(prev + 3, classes.length))}
+              >
+                ➜ טען 3 סדנאות נוספות
+              </button>
+            )}
+
+            {visibleCount > 3 && (
+              <button
+                style={{ ...styles.loadMoreButton, backgroundColor: "#777" }}
+                onClick={() => setVisibleCount((prev) => Math.max(prev - 3, 3))}
+              >
+                ← הפחת ל-3 האחרונות
+              </button>
+            )}
+          </div>
+        )}
 
         {isAdmin && (
           <div style={styles.formCard}>
@@ -309,6 +341,24 @@ const styles = {
     borderRadius: "14px",
     boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
     transition: "0.2s",
+    minWidth: "320px",
+    maxWidth: "400px",
+    width: "100%",
+  },
+  loadMoreWrapper: {
+    marginTop: "16px",
+    display: "flex",
+    gap: "10px",
+    justifyContent: "flex-start",
+    flexWrap: "wrap",
+  },
+  loadMoreButton: {
+    padding: "10px 16px",
+    border: "none",
+    borderRadius: "8px",
+    backgroundColor: "#5c88c3",
+    color: "#fff",
+    cursor: "pointer",
   },
 
   cardTitle: {
